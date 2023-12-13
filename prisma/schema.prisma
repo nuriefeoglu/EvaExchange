@@ -1,0 +1,70 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = "postgres://nuriefeoglu:123456@localhost:5432/postgres?schema=public"
+}
+
+model User {
+  id           String        @id @unique @default(cuid())
+  name         String
+  email        String        @unique
+  password     String
+  balance      Float         @default(0.00)
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+  transactions Transaction[]
+  Portfolio    Portfolio?
+
+  @@map("users")
+}
+
+model Share {
+  id            String        @id @unique @default(cuid())
+  shareName     String
+  shareSymbol   String        @unique
+  sharePrice    Float
+  shareQuantity Int           @default(0)
+  createdAt     DateTime      @default(now())
+  updatedAt     DateTime      @updatedAt
+  Transaction   Transaction[]
+
+  @@map("shares")
+}
+
+model Portfolio {
+  portfolioId String      @id @unique @default(cuid())
+  shares      UserShare[]
+  createdAt   DateTime    @default(now())
+  updatedAt   DateTime    @updatedAt
+  userId      String      @unique @map("userId")
+  User        User        @relation(fields: [userId], references: [id])
+
+  @@map("portfolios")
+}
+
+model UserShare {
+  id            String    @id @unique @default(cuid())
+  shareSymbol   String
+  shareQuantity Int
+  portfolio     Portfolio @relation(fields: [portfolioId], references: [portfolioId])
+  portfolioId   String    @map("portfolioId")
+
+  @@map("userShares")
+}
+
+model Transaction {
+  id                  String   @id @unique @default(cuid())
+  user                User     @relation(fields: [userId], references: [id])
+  userId              String   @map("userId")
+  shareId             String   @map("shareId")
+  share               Share    @relation(fields: [shareId], references: [id])
+  transactionType     String
+  transactionQuantity Int
+  transactionPrice    Float
+  transactionDate     DateTime @default(now())
+
+  @@map("transactions")
+}
